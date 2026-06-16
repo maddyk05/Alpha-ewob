@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Boardroom Lab — EWOB</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f0;
+    --bg-tertiary: #eeede8;
+    --bg-info: #e6f1fb;
+    --bg-success: #e1f5ee;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b6b;
+    --text-success: #085041;
+    --text-info: #0c447c;
+    --border: rgba(0,0,0,0.12);
+    --border-md: rgba(0,0,0,0.22);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1c1c1c;
+      --bg-secondary: #262626;
+      --bg-tertiary: #2e2e2e;
+      --bg-info: #0c2340;
+      --bg-success: #042c1e;
+      --text-primary: #f0f0f0;
+      --text-secondary: #9a9a9a;
+      --text-success: #9fe1cb;
+      --text-info: #85b7eb;
+      --border: rgba(255,255,255,0.10);
+      --border-md: rgba(255,255,255,0.20);
+    }
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0 3rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .section {
+    padding: 1rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .section:last-child { border-bottom: none; }
+
+  .label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .phase-banner {
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+  }
+  .phase-banner p { margin: 0; }
+  .phase-hl { font-size: 14px; font-weight: 500; margin-bottom: 3px !important; }
+  .phase-sub { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  .now-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+  }
+  .now-card p { margin: 0; }
+  .now-title { font-size: 14px; font-weight: 500; margin-bottom: 4px !important; }
+  .now-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px !important; }
+  .progress-track { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-bar { height: 100%; background: #1D9E75; border-radius: 2px; transition: width 1s linear; }
+  .now-remaining { font-size: 11px; color: var(--text-secondary); margin-top: 6px !important; }
+
+  .next-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .next-card i { font-size: 18px; color: var(--text-secondary); flex-shrink: 0; }
+  .next-time { font-size: 11px; color: var(--text-secondary); margin-bottom: 1px; }
+  .next-title { font-size: 13px; font-weight: 500; }
+
+  .checklist-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+  .checklist-item:last-child { margin-bottom: 0; }
+  .checklist-item i { font-size: 15px; color: var(--text-success); flex-shrink: 0; margin-top: 2px; }
+  .checklist-item p { font-size: 13px; line-height: 1.5; }
+
+  .session-row {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+    align-items: flex-start;
+  }
+  .session-row:last-child { border-bottom: none; }
+  .session-row.active {
+    background: var(--bg-secondary);
+    margin: 0 -1rem;
+    padding: 10px 1rem;
+    border-radius: var(--radius-md);
+    border-bottom: none;
+  }
+  .session-row.done .session-title,
+  .session-row.done .session-desc,
+  .session-row.done .session-time { opacity: 0.4; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .dot-active { background: #1D9E75; }
+  .dot-done { background: var(--border-md); }
+  .dot-upcoming { border: 1.5px solid var(--border-md); background: transparent; }
+  .session-time { font-size: 11px; color: var(--text-secondary); min-width: 70px; flex-shrink: 0; padding-top: 2px; }
+  .session-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .session-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+
+  .cta-btn {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-md);
+    color: var(--text-primary);
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    text-decoration: none;
+    font-family: var(--font);
+  }
+  .cta-btn:last-child { margin-bottom: 0; }
+  .cta-btn:hover { background: var(--bg-secondary); }
+  .cta-btn.muted { opacity: 0.7; }
+
+  .live-time { font-size: 11px; color: var(--text-secondary); }
+
+  #now-section, #next-section, #focus-section { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="section">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+      <span class="label" style="margin-bottom:0;">Alpha Institute × EWOB</span>
+      <span class="live-time" id="live-time"></span>
+    </div>
+    <h1>AI Boardroom Lab</h1>
+    <div class="phase-banner" id="phase-banner">
+      <p class="phase-hl" id="phase-hl"></p>
+      <p class="phase-sub" id="phase-sub"></p>
+    </div>
+  </div>
+
+  <div class="section" id="now-section">
+    <p class="label">Happening now</p>
+    <div class="now-card">
+      <p class="now-title" id="now-title"></p>
+      <p class="now-desc" id="now-desc"></p>
+      <div class="progress-track">
+        <div class="progress-bar" id="now-progress" style="width:0%"></div>
+      </div>
+      <p class="now-remaining" id="now-remaining"></p>
+    </div>
+  </div>
+
+  <div class="section" id="next-section">
+    <p class="label">Up next</p>
+    <div class="next-card">
+      <i class="ti" id="next-icon" aria-hidden="true"></i>
+      <div>
+        <p class="next-time" id="next-time"></p>
+        <p class="next-title" id="next-title"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="focus-section">
+    <p class="label" id="focus-label">What to focus on</p>
+    <div id="focus-list"></div>
+  </div>
+
+  <div class="section">
+    <p class="label">Full agenda</p>
+    <div id="agenda-list"></div>
+  </div>
+
+  <div class="section">
+    <p class="label">Quick links</p>
+    <a class="cta-btn" href="https://www.alpha.ac/institute/workshop/assessment/ewob" target="_blank">
+      Start assessment <i class="ti ti-arrow-right" aria-hidden="true"></i>
+    </a>
+    <a class="cta-btn" href="https://www.alpha.ac/institute/workshop/ewob/prework" target="_blank">
+      Review pre-work <i class="ti ti-arrow-right" aria-hidden="true"></i>
+    </a>
+    <a class="cta-btn muted" href="https://www.alpha.ac/institute/workshop/ewob/faq" target="_blank">
+      Full FAQ <i class="ti ti-external-link" aria-hidden="true"></i>
+    </a>
+  </div>
+
+</div>
+
+<script>
+const SESSIONS = [
+  { start: 9*60,    end: 9*60+30, label:"9:00–9:30",   title:"Welcome + calibration",  desc:"Intros, day framing, and a short exercise from the pre-work assessment.",       icon:"ti-door-enter" },
+  { start: 9*60+30, end:10*60+15, label:"9:30–10:15",  title:"AI foundations",         desc:"What AI systems are, how they work, and where board governance leverage sits.",  icon:"ti-bulb" },
+  { start:10*60+15, end:11*60,    label:"10:15–11:00", title:"Prompting + intent",     desc:"Hands-on practice: write prompts that produce reliable, reviewable results.",    icon:"ti-terminal" },
+  { start:11*60,    end:11*60+15, label:"11:00–11:15", title:"Break",                  desc:"Structured coffee with the cohort.",                                             icon:"ti-coffee" },
+  { start:11*60+15, end:12*60,    label:"11:15–12:00", title:"Workflow design",         desc:"Build a reusable AI-assisted workflow for a recurring board task — no code.",    icon:"ti-arrows-split" },
+  { start:12*60,    end:12*60+45, label:"12:00–12:45", title:"AI agents explained",    desc:"What agents are, how they work, and a guided build of a simple director agent.", icon:"ti-robot" },
+  { start:12*60+45, end:13*60+15, label:"12:45–1:15",  title:"Governance discussion",  desc:"Linking the day's exercises back to board oversight, disclosure, and risk.",      icon:"ti-scale" },
+  { start:13*60+15, end:13*60+30, label:"1:15–1:30",   title:"Capstone + next steps",  desc:"Synthesis, individual takeaways, and a personal practice plan.",                 icon:"ti-flag" }
+];
+
+const PRE_FOCUS = [
+  { icon:"ti-circle-check", text:"Complete the online pre-work assessment before attending" },
+  { icon:"ti-circle-check", text:"Prepare sanitized board materials to use in exercises" },
+  { icon:"ti-circle-check", text:"No technical background needed — come as you are" }
+];
+
+const POST_FOCUS = [
+  { icon:"ti-circle-check", text:"Follow your personal practice plan between board cycles" },
+  { icon:"ti-circle-check", text:"Bring your governance questions back to committee" },
+  { icon:"ti-circle-check", text:"Your LLM-searchable director profile is ready to use" }
+];
+
+function nowMins() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+}
+
+function fmtTime(d) {
+  return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+}
+
+function minsLeft(end, cur) {
+  const diff = Math.max(0, end - cur);
+  const m = Math.floor(diff);
+  const s = Math.round((diff - m) * 60);
+  if (m === 0) return s + 's left';
+  if (s === 0) return m + 'm left';
+  return m + 'm ' + s + 's left';
+}
+
+function pct(start, end, cur) {
+  return Math.min(100, Math.max(0, Math.round((cur - start) / (end - start) * 100)));
+}
+
+function setFocus(label, items) {
+  document.getElementById('focus-section').style.display = 'block';
+  document.getElementById('focus-label').textContent = label;
+  const fl = document.getElementById('focus-list');
+  fl.innerHTML = '';
+  items.forEach(f => {
+    fl.innerHTML += `<div class="checklist-item"><i class="ti ${f.icon}" aria-hidden="true"></i><p>${f.text}</p></div>`;
+  });
+}
+
+function render() {
+  const cur = nowMins();
+  const d = new Date();
+  document.getElementById('live-time').textContent = fmtTime(d);
+
+  const WORKSHOP_START = SESSIONS[0].start;
+  const WORKSHOP_END = SESSIONS[SESSIONS.length - 1].end;
+
+  let phase = cur < WORKSHOP_START ? 'pre' : cur >= WORKSHOP_END ? 'post' : 'during';
+
+  let activeIdx = -1;
+  for (let i = 0; i < SESSIONS.length; i++) {
+    if (cur >= SESSIONS[i].start && cur < SESSIONS[i].end) { activeIdx = i; break; }
+  }
+
+  const banner = document.getElementById('phase-banner');
+  const hl = document.getElementById('phase-hl');
+  const sub = document.getElementById('phase-sub');
+  const nowSec = document.getElementById('now-section');
+  const nextSec = document.getElementById('next-section');
+  const focusSec = document.getElementById('focus-section');
+
+  nowSec.style.display = 'none';
+  nextSec.style.display = 'none';
+  focusSec.style.display = 'none';
+
+  if (phase === 'pre') {
+    banner.style.background = 'var(--bg-info)';
+    hl.style.color = 'var(--text-info)';
+    hl.textContent = 'Workshop starts at 9:00 am';
+    sub.textContent = 'Review your pre-work and get set up before the session begins.';
+    setFocus('Before you arrive', PRE_FOCUS);
+  } else if (phase === 'post') {
+    banner.style.background = 'var(--bg-secondary)';
+    hl.style.color = 'var(--text-primary)';
+    hl.textContent = 'Workshop complete';
+    sub.textContent = 'Keep your fluency current — practice between board cycles.';
+    setFocus('What you leave with', POST_FOCUS);
+  } else {
+    banner.style.background = 'var(--bg-success)';
+    hl.style.color = 'var(--text-success)';
+    hl.textContent = 'Workshop in progress';
+    sub.textContent = "You're live. Follow along below.";
+
+    if (activeIdx >= 0) {
+      const s = SESSIONS[activeIdx];
+      nowSec.style.display = 'block';
+      document.getElementById('now-title').textContent = s.title;
+      document.getElementById('now-desc').textContent = s.desc;
+      document.getElementById('now-progress').style.width = pct(s.start, s.end, cur) + '%';
+      document.getElementById('now-remaining').textContent = minsLeft(s.end, cur);
+    }
+
+    const nextIdx = activeIdx >= 0 ? activeIdx + 1 : SESSIONS.findIndex(s => s.start > cur);
+    if (nextIdx >= 0 && nextIdx < SESSIONS.length) {
+      const n = SESSIONS[nextIdx];
+      nextSec.style.display = 'block';
+      document.getElementById('next-time').textContent = n.label;
+      document.getElementById('next-title').textContent = n.title;
+      document.getElementById('next-icon').className = 'ti ' + n.icon;
+    }
+  }
+
+  const al = document.getElementById('agenda-list');
+  al.innerHTML = '';
+  SESSIONS.forEach((s, i) => {
+    let rowClass = 'session-row';
+    let dotClass = 'dot dot-upcoming';
+    if (cur >= s.end) { rowClass += ' done'; dotClass = 'dot dot-done'; }
+    else if (i === activeIdx) { rowClass += ' active'; dotClass = 'dot dot-active'; }
+    al.innerHTML += `
+      <div class="${rowClass}">
+        <div class="${dotClass}"></div>
+        <span class="session-time">${s.label}</span>
+        <div>
+          <p class="session-title">${s.title}</p>
+          <p class="session-desc">${s.desc}</p>
+        </div>
+      </div>`;
+  });
+}
+
+render();
+setInterval(render, 10000);
+</script>
+</body>
+</html>
